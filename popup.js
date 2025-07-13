@@ -32,38 +32,58 @@ document.addEventListener("DOMContentLoaded", () => {
         li.style.justifyContent = "space-between";
         li.style.alignItems = "center";
 
-        li.onmouseenter = () => li.style.backgroundColor = "#2f303a";
-        li.onmouseleave = () => li.style.backgroundColor = "";
+        li.onmouseenter = () => (li.style.backgroundColor = "#2f303a");
+        li.onmouseleave = () => (li.style.backgroundColor = "");
 
- 
         li.onclick = (e) => {
-          if (e.target.tagName.toLowerCase() === "button") return; // ignore clear btn
+          if (e.target.tagName.toLowerCase() === "img") return;
 
           chrome.tabs.query({ url: bookmark.url }, (existingTabs) => {
-            const scrollScript = `
-              function findAndScrollToMessage(messageId, attempts = 0) {
-                const el = document.querySelector('[data-message-id="' + messageId + '"]');
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else if (attempts < 20) {
-                  window.scrollBy(0, 200);
-                  setTimeout(() => findAndScrollToMessage(messageId, attempts + 1), 300);
-                } else {
-                  alert("Message not found after trying.");
-                }
-              }
-              findAndScrollToMessage("${bookmark.id}");
-            `;
+            const execScroll = (tabId) => {
+              chrome.scripting.executeScript({
+                target: { tabId },
+                func: (messageId) => {
+                  const highlightAndScroll = (el) => {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                  };
+
+                  const tryScroll = () => {
+                    const el = document.querySelector(`[data-message-id="${messageId}"]`);
+                    if (el) return highlightAndScroll(el);
+
+                    const observer = new MutationObserver((_, obs) => {
+                      const el = document.querySelector(`[data-message-id="${messageId}"]`);
+                      if (el) {
+                        highlightAndScroll(el);
+                        obs.disconnect();
+                      }
+                    });
+
+                    observer.observe(document.body, {
+                      childList: true,
+                      subtree: true,
+                    });
+
+                    // Fallback: disconnect observer after 10s
+                    setTimeout(() => observer.disconnect(), 10000);
+                  };
+
+                  tryScroll();
+                },
+                args: [bookmark.id],
+              });
+            };
 
             if (existingTabs.length > 0) {
               chrome.tabs.update(existingTabs[0].id, { active: true });
-              chrome.tabs.executeScript(existingTabs[0].id, { code: scrollScript });
+              execScroll(existingTabs[0].id);
             } else {
               chrome.tabs.create({ url: bookmark.url }, (newTab) => {
                 chrome.tabs.onUpdated.addListener(function waitForLoad(tabId, info) {
                   if (tabId === newTab.id && info.status === "complete") {
                     chrome.tabs.onUpdated.removeListener(waitForLoad);
-                    chrome.tabs.executeScript(newTab.id, { code: scrollScript });
+                    execScroll(newTab.id);
                   }
                 });
               });
@@ -71,14 +91,23 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         };
 
-        // Clear button
+        // Clear Button
         const clearImg = document.createElement("img");
-        clearImg.src = chrome.runtime.getURL('assets/clear.svg');
-        clearImg.className = 'clear-img';
-        clearImg.style.height = '16px';
-        clearImg.style.width = '16px';
+        clearImg.src = chrome.runtime.getURL("assets/clear.svg");
+        clearImg.className = "clear-img";
+        clearImg.style.height = "16px";
+        clearImg.style.width = "16px";
         clearImg.alt = "Clear";
         clearImg.style.marginLeft = "10px";
+        clearImg.style.transition = "transform 0.2s";
+
+        clearImg.onmouseenter = () => {
+          clearImg.style.transform = "rotate(15deg)";
+        };
+        clearImg.onmouseleave = () => {
+          clearImg.style.transform = "rotate(0deg)";
+        };
+
         clearImg.onclick = () => {
           const newBookmarks = bookmarks.filter(
             (b) => b.id !== bookmark.id || b.url !== bookmark.url
