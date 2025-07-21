@@ -40,32 +40,54 @@ document.addEventListener("DOMContentLoaded", () => {
           if (e.target.tagName.toLowerCase() === "button") return; // ignore clear btn
 
           chrome.tabs.query({ url: bookmark.url }, (existingTabs) => {
-            const scrollScript = `
-              function findAndScrollToMessage(messageId, attempts = 0) {
-                const el = document.querySelector('[data-message-id="' + messageId + '"]');
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else if (attempts < 20) {
-                  window.scrollBy(0, 200);
-                  setTimeout(() => findAndScrollToMessage(messageId, attempts + 1), 300);
-                } else {
-                  alert("Message not found after trying.");
-                }
-              }
-              findAndScrollToMessage("${bookmark.id}");
-            `;
 
             if (existingTabs.length > 0) {
               chrome.tabs.update(existingTabs[0].id, { active: true });
-              chrome.tabs.executeScript(existingTabs[0].id, { code: scrollScript });
-            } else {
-              chrome.tabs.create({ url: bookmark.url }, (newTab) => {
-                chrome.tabs.onUpdated.addListener(function waitForLoad(tabId, info) {
-                  if (tabId === newTab.id && info.status === "complete") {
-                    chrome.tabs.onUpdated.removeListener(waitForLoad);
-                    chrome.tabs.executeScript(newTab.id, { code: scrollScript });
+              chrome.scripting.executeScript({
+                target: { tabId: existingTabs[0].id },
+                func: (messageId) => {
+                  function findAndScrollToMessage(messageId, attempts = 0) {
+                    // Wait for page to be fully loaded
+                    if (attempts === 0 && document.readyState !== 'complete') {
+                      setTimeout(() => findAndScrollToMessage(messageId, 0), 500);
+                      return;
+                    }
+                    
+                    const el = document.querySelector('[data-message-id="' + messageId + '"]');
+                    if (el) {
+                      // Found the message, scroll to it
+                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else if (attempts < 50) {
+                      // Scroll down to load more messages and try again
+                      window.scrollBy(0, 300);
+                      setTimeout(() => findAndScrollToMessage(messageId, attempts + 1), 500);
+                    } else {
+                      // Last resort: try scrolling to top and then searching again
+                      if (attempts === 50) {
+                        window.scrollTo(0, 0);
+                        setTimeout(() => findAndScrollToMessage(messageId, 51), 1000);
+                      } else if (attempts < 100) {
+                        window.scrollBy(0, 200);
+                        setTimeout(() => findAndScrollToMessage(messageId, attempts + 1), 300);
+                      } else {
+                        alert("Message not found. The conversation might have been modified or the message may no longer exist.");
+                      }
+                    }
                   }
-                });
+                  setTimeout(() => findAndScrollToMessage(messageId), 100);
+                },
+                args: [bookmark.id]
+              });
+            } else {
+              // Store the message ID to scroll to when the new tab loads
+              chrome.storage.local.set({ 
+                pendingScroll: { 
+                  messageId: bookmark.id, 
+                  url: bookmark.url,
+                  timestamp: Date.now()
+                } 
+              }, () => {
+                chrome.tabs.create({ url: bookmark.url });
               });
             }
           });
