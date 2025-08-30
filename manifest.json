@@ -6,7 +6,17 @@
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "PromptPin"
+    "default_title": "PromptPin",
+    "default_icon": {
+      "16": "assets/icons/prompt_pin_16x16.png",
+      "48": "assets/icons/prompt_pin_48x48.png",
+      "128": "assets/icons/prompt_pin_128x128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icons/prompt_pin_16x16.png",
+    "48": "assets/icons/prompt_pin_48x48.png",
+    "128": "assets/icons/prompt_pin_128x128.png"
   },
   "content_scripts": [
     {

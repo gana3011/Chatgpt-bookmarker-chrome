@@ -1,9 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+html {
+  padding: 0;
+  border: 0;
+}
 
 body {
-  font-family: 'Poppins', sans-serif;
-  background-color: #202123;
-  color: #ECECF1;
+  font-family: "Poppins", sans-serif;
   padding: 0;
   border: 0;
   width: 350px;
@@ -15,10 +18,10 @@ li {
 }
 
 button {
-  background-color: #444654;       
-  color: #ECECF1;                  
-  border: 1px solid #565869;       
-  border-radius: 6px;              
+  background-color: #444654;
+  color: #ececf1;
+  border: 1px solid #565869;
+  border-radius: 6px;
   padding: 8px 14px;
   font-size: 14px;
   cursor: pointer;
@@ -26,20 +29,20 @@ button {
 }
 
 button:hover {
-  background-color: #565869;       
-  border-color: #6B6F79;           
+  background-color: #565869;
+  border-color: #6b6f79;
 }
 
 button:active {
-  background-color: #3C3E4A;       
+  background-color: #3c3e4a;
 }
 
-#bookmarkList{
+#bookmarkList {
   padding: 0;
 }
 
 #bookmarkList li {
-  border-bottom: 1px solid #3a3b47; 
+  border-bottom: 1px solid #3a3b47;
   padding: 8px;
   margin-bottom: 4px;
 }
@@ -57,12 +60,19 @@ button:active {
 }
 
 @keyframes shakeX {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  50% { transform: translateX(2px); }
-  75% { transform: translateX(-2px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
-
-
-
