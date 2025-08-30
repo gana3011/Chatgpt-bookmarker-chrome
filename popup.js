@@ -83,13 +83,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         li.style.display = "flex";
         li.style.justifyContent = "space-between";
         li.style.alignItems = "center";
-
+        
         li.onmouseenter = () =>
           (li.style.backgroundColor = theme === "dark" ? "#2f303a" : "#F0F0F0");
         li.onmouseleave = () => (li.style.backgroundColor = "");
 
         li.onclick = (e) => {
-          if (e.target.tagName.toLowerCase() === "button") return; // ignore clear btn
+          if (e.target.tagName.toLowerCase() === "img") return;
 
           chrome.tabs.query({ url: bookmark.url }, (existingTabs) => {
             if (existingTabs.length > 0) {
@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
         };
 
-        // Clear button
+        // Clear Button
         const clearImg = document.createElement("img");
         const iconPath =
           theme === "dark" ? "assets/clear-dark.svg" : "assets/clear-light.svg";
@@ -176,6 +176,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         clearImg.style.width = "16px";
         clearImg.alt = "Clear";
         clearImg.style.marginLeft = "10px";
+        clearImg.style.transition = "transform 0.2s";
+
+        clearImg.onmouseenter = () => {
+          clearImg.style.transform = "rotate(15deg)";
+        };
+        clearImg.onmouseleave = () => {
+          clearImg.style.transform = "rotate(0deg)";
+        };
+
         clearImg.onclick = () => {
           const newBookmarks = bookmarks.filter(
             (b) => b.id !== bookmark.id || b.url !== bookmark.url
